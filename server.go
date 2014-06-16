@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -18,7 +19,7 @@ var (
 
 func mainPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello there, you are currently at %s. The URL is: %s. Response: %s",
-		r.URL.Path[1:], buildRecentURL("Imvoo", 0), getRecentPlays(buildRecentURL("Imvoo", 0)))
+		r.URL.Path[1:], buildRecentURL(userID, 0), getRecentPlays(buildRecentURL(userID, 0)))
 }
 
 func main() {
@@ -35,6 +36,13 @@ func setAPIKey() {
 	if err != nil {
 		log.Fatal("ERROR: ", err)
 	}
+
+	// Trims spaces and trailing newlines from the API key so that the URL
+	// to retrieve songs can be built properly.
+	API_KEY = bytes.TrimSpace(API_KEY)
+	API_KEY = bytes.Trim(API_KEY, "\r\n")
+
+	fmt.Println("API Key set to:", string(API_KEY))
 }
 
 func buildRecentURL(USER_ID string, GAME_TYPE int) string {
