@@ -43,6 +43,7 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 func main() {
 	setAPIKey()
 	fmt.Printf("Server started on Port %s.\n", PORT)
+	getRecentPlays(buildRecentURL(userID, 0))
 	http.HandleFunc("/", mainPage)
 	http.ListenAndServe(LISTEN_PORT, nil)
 }
@@ -71,6 +72,12 @@ func checkError(err error, msg string) {
 	}
 }
 
+func checkErrorDetails(err error, msg string, details string) {
+	if err != nil {
+		log.Fatal("ERROR (", msg, "): ", err, ".\nEXTRA DETAILS: ", details)
+	}
+}
+
 func getRecentPlays(url string) string {
 	var songs []Song
 
@@ -82,7 +89,7 @@ func getRecentPlays(url string) string {
 	checkError(err, "Read HTML")
 
 	err = json.Unmarshal(html, &songs)
-	checkError(err, "Unmarshal JSON")
+	checkErrorDetails(err, "Unmarshal JSON", "Unable to retrieve correct page, maybe a redirect due to a network proxy or invalid API key.")
 
 	// Prints out each song's entry, used for debugging purposes.
 	for i := 0; i < len(songs); i++ {
@@ -90,5 +97,5 @@ func getRecentPlays(url string) string {
 			songs[i].Date, songs[i].Beatmap_ID, songs[i].Score, songs[i].Rank)
 	}
 
-	return ""
+	return "\nSuccess!"
 }
