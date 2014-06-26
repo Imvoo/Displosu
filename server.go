@@ -99,3 +99,23 @@ func getRecentPlays(url string) string {
 
 	return "\nSuccess!"
 }
+
+// Use this function if you are behind a proxy/corporate network and want to work off a local file.
+// It will serve as a local HTML file for you to test the website.
+func getLocalPlays(path string) string {
+	var songs []Song
+
+	html, err := ioutil.ReadFile(path)
+	checkError(err, "Read Local HTML")
+	fmt.Println(string(html))
+	err = json.Unmarshal(html, &songs)
+	checkErrorDetails(err, "Unmarshal JSON", "Is the input in the local file correct?")
+
+	// Prints out each song's entry, used for debugging purposes.
+	for i := 0; i < len(songs); i++ {
+		fmt.Printf("%s: ID=%s> Score=%s, %s\n",
+			songs[i].Date, songs[i].Beatmap_ID, songs[i].Score, songs[i].Rank)
+	}
+
+	return "\nSuccess!"
+}
