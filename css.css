@@ -32,7 +32,7 @@ th {
 }
 
 .row:nth-of-type(odd) {
-	background-color: #ecf0f1;
+	background-color: #F4F4F4;
 }
 
 .row:nth-of-type(even) {
@@ -95,6 +95,7 @@ th {
 	height: 100%;
 	margin: 0 auto 0px;
 	position: relative;
+	background-color: #D7D7D7;
 }
 
 #title {
@@ -108,9 +109,7 @@ th {
 #main {
 	position: relative;
 	margin-left: 200px;
-	padding: 20px;
-	padding-top: 20px;
-	padding-bottom: 0px;
+	padding: 50px;
 }
 
 #content {

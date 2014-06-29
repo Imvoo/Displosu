@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 var (
@@ -40,19 +41,19 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path[1:], buildRecentURL(userID, 0))
 }
 
-func main() {
-	setAPIKey()
-	fmt.Printf("Server started on Port %s.\n", PORT)
-	getRecentPlays(buildRecentURL(userID, 0))
-	http.HandleFunc("/", mainPage)
-	http.ListenAndServe(LISTEN_PORT, nil)
-}
-
 func setAPIKey() {
 	var err error
 
 	API_KEY, err = ioutil.ReadFile("./APIKEY.txt")
 	checkError(err, "API Key")
+
+	if err != nil {
+		API_KEY = []byte(os.Getenv("APIKEY"))
+	}
+
+	if len(string(API_KEY)) <= 1 {
+		log.Fatal("ERROR (No Api Key): Failed to find Api Key in local APIKEY.txt file or in environment variables under APIKEY.")
+	}
 
 	// Trims spaces and trailing newlines from the API key so that the URL
 	// to retrieve songs can be built properly.
@@ -118,4 +119,12 @@ func getLocalPlays(path string) string {
 	}
 
 	return "\nSuccess!"
+}
+
+func main() {
+	setAPIKey()
+	fmt.Printf("Server started on Port %s.\n", PORT)
+	getRecentPlays(buildRecentURL(userID, 0))
+	http.HandleFunc("/", mainPage)
+	http.ListenAndServe(LISTEN_PORT, nil)
 }
