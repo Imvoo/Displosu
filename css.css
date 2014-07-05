@@ -19,8 +19,9 @@ table {
 table, th, td {
 	padding: 5px;
 	font-family: "Questrial";
-	font-size: 12px;
+	font-size: 15px;
 	font-weight: 400;
+	border-bottom: 1px solid #bdc3c7;
 }
 
 th {
@@ -32,7 +33,7 @@ th {
 }
 
 .row:nth-of-type(odd) {
-	background-color: #F4F4F4;
+	background-color: white;
 }
 
 .row:nth-of-type(even) {
@@ -45,10 +46,14 @@ th {
 
 .row:hover {
 	background-color: #E74C3C;
-	filter:alpha(opacity=100);
-	-moz-opacity:1.0;
-	-khtml-opacity: 1.0;
-	opacity: 1.0;
+	filter:alpha(opacity=80);
+	-moz-opacity:0.8;
+	-khtml-opacity: 0.8;
+	opacity: 0.8;
+}
+
+.row {
+	border-right: 1px solid #bdc3c7;
 }
 
 .failed {
@@ -60,8 +65,8 @@ th {
 }
 
 .avatar {
-	border-bottom: 5px solid;
-	border-color: #27ae60;
+	border: 1px solid #2C3E50;
+	border-bottom: 5px solid #27ae60;
 }
 
 .avatarDescription {
@@ -95,7 +100,7 @@ th {
 	height: 100%;
 	margin: 0 auto 0px;
 	position: relative;
-	background-color: #D7D7D7;
+	background-color: #ECF0F1;
 }
 
 #title {
@@ -128,7 +133,7 @@ th {
 	bottom: 0;
 	left: 0;
 	width: 200px;
-	background-color: #1F2025;
+	background-color: #2C3E50;
 	color: #ecf0f1;
 	letter-spacing: -2px;
 }
@@ -153,16 +158,33 @@ th {
 	margin: 0;
 }
 
+@keyframes zoomIn {
+	0% {	
+		opacity: 0;
+		transform: translateY(-2000px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.zoomIn {
+  animation-name: zoomIn;
+}
+
 #logoHolder {
 	width: 160px;
 	text-align: center;
+	animation-duration: 1s;
+	animation-name: zoomIn;
 }
 
 .headerBar {
 	font-size: 0;
 	padding: 15px;
 	padding-left: 20px;
-	background: #1F2025;
+	background: #2C3E50;
 	margin: 0;
 	border-bottom: 1px solid;
 	height: 25px;
