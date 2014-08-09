@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -28,6 +29,12 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello there, you are currently at %s.", r.URL.Path[1:])
 }
 
+func extractText(text string) string {
+	text = strings.TrimSpace(text)
+	text = strings.Trim(text, "\r\n")
+	return text
+}
+
 func main() {
 	// For use with local server and not Heroku.
 	if PORT == "" {
@@ -44,7 +51,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tempUserName, err := ioutil.ReadFile(dir + "\\dbUser.txt")
+	// Start to load in the Username and Password from one of two locations;
+	// From the environment variables dbUser and dbPass or in the current folder
+	// under dbUser.txt and dbPass.txt.
+	tempUserName, err := ioutil.ReadFile(dir + "/dbUser.txt")
 	if err != nil {
 		dbUser = os.Getenv("dbUser")
 
@@ -57,7 +67,7 @@ func main() {
 		dbUser = string(tempUserName)
 	}
 
-	tempPassword, err := ioutil.ReadFile(dir + "\\dbPass.txt")
+	tempPassword, err := ioutil.ReadFile(dir + "/dbPass.txt")
 	if err != nil {
 		dbPass = os.Getenv("dbPass")
 
@@ -70,25 +80,29 @@ func main() {
 		dbPass = string(tempPassword)
 	}
 
+	// Removes EOL, spaces etc. that may disturb the Mongo URL.
+	dbUser = extractText(dbUser)
+	dbPass = extractText(dbPass)
+
 	mongoDB := "mongodb://" + string(dbUser) + ":" + string(dbPass) + "@ds053439.mongolab.com:53439/displosu"
 
 	session, err = mgo.Dial(mongoDB)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Cannot authenticate with the database, are your credentials correct in the local files or env variables (dbUser, dbPass)?")
 	}
 	defer session.Close()
 
 	fmt.Printf("Server started on Port %s.\n", PORT)
 
 	c := cron.New()
-	c.AddFunc("0 * * * * *", func() { RecentSongs() })
+	c.AddFunc("0 * * * * *", func() { SaveRecentSongs() })
 	c.Start()
 
 	http.HandleFunc("/", mainPage)
 	http.ListenAndServe(LISTEN_PORT, nil)
 }
 
-func RecentSongs() {
+func SaveRecentSongs() {
 	recentSongs, err := DATABASE.GetRecentPlays(USER_ID, GOsu.OSU)
 	if err != nil {
 		log.Fatal(err)
