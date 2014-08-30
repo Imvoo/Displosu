@@ -105,47 +105,46 @@ func main() {
 func SaveRecentSongs() {
 	recentSongs, err := DATABASE.GetRecentPlays(USER_ID, GOsu.OSU)
 	if err != nil {
-		fmt.Println("WARN: " + err)
-		break
-	}
+		fmt.Println("WARN: ", err)
+	} else {
+		c := session.DB("displosu").C(USER_ID)
 
-	c := session.DB("displosu").C(USER_ID)
+		// Grabs the latest song for tracking which songs to record.
+		emptyDatabase := false
+		latestSong := GOsu.Song{}
+		err = c.Find(nil).Sort("-date").One(&latestSong)
+		if err != nil {
+			fmt.Println("WARN: no songs found in database!")
+			emptyDatabase = true
+		}
 
-	// Grabs the latest song for tracking which songs to record.
-	emptyDatabase := false
-	latestSong := GOsu.Song{}
-	err = c.Find(nil).Sort("-date").One(&latestSong)
-	if err != nil {
-		fmt.Println("WARN: no songs found in database!")
-		emptyDatabase = true
-	}
-
-	var latestTime time.Time
-	if !emptyDatabase {
-		latestTime, _ = time.Parse("2006-01-02 15:04:05", latestSong.Date)
-	}
-
-	for _, result := range recentSongs {
+		var latestTime time.Time
 		if !emptyDatabase {
-			resultTime, err := time.Parse("2006-01-02 15:04:05", result.Date)
-			if err != nil {
-				log.Fatal(err)
-			}
+			latestTime, _ = time.Parse("2006-01-02 15:04:05", latestSong.Date)
+		}
 
-			if resultTime.After(latestTime) {
+		for _, result := range recentSongs {
+			if !emptyDatabase {
+				resultTime, err := time.Parse("2006-01-02 15:04:05", result.Date)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				if resultTime.After(latestTime) {
+					fmt.Printf("Inserted song @ %s scoring %s.\n", result.Date, result.Score)
+					err = c.Insert(result)
+
+					if err != nil {
+						log.Fatal(err)
+					}
+				}
+			} else {
 				fmt.Printf("Inserted song @ %s scoring %s.\n", result.Date, result.Score)
 				err = c.Insert(result)
 
 				if err != nil {
 					log.Fatal(err)
 				}
-			}
-		} else {
-			fmt.Printf("Inserted song @ %s scoring %s.\n", result.Date, result.Score)
-			err = c.Insert(result)
-
-			if err != nil {
-				log.Fatal(err)
 			}
 		}
 	}
