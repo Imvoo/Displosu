@@ -105,7 +105,8 @@ func main() {
 func SaveRecentSongs() {
 	recentSongs, err := DATABASE.GetRecentPlays(USER_ID, GOsu.OSU)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("WARN: " + err)
+		break
 	}
 
 	c := session.DB("displosu").C(USER_ID)
