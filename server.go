@@ -115,6 +115,7 @@ func SaveRecentSongs() {
 		err = c.Find(nil).Sort("-date").One(&latestSong)
 		if err != nil {
 			fmt.Println("WARN: no songs found in database!")
+			fmt.Printf("EXTRA INFO: {0}.\n", err)
 			emptyDatabase = true
 		}
 
