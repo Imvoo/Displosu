@@ -90,7 +90,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Cannot authenticate with the database, are your credentials correct in the local files or env variables (dbUser, dbPass)?")
 	}
-	defer session.Close()
 
 	fmt.Printf("Server started on Port %s.\n", PORT)
 
@@ -115,7 +114,8 @@ func SaveRecentSongs() {
 		err = c.Find(nil).Sort("-date").One(&latestSong)
 		if err != nil {
 			fmt.Println("WARN: no songs found in database!")
-			fmt.Printf("EXTRA INFO: {0}.\n", err)
+			fmt.Println(err)
+			fmt.Println("USER_ID: ", USER_ID)
 			emptyDatabase = true
 		}
 
