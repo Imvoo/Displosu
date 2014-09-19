@@ -90,12 +90,14 @@ func main() {
 	if err != nil {
 		log.Fatal("Cannot authenticate with the database, are your credentials correct in the local files or env variables (dbUser, dbPass)?")
 	}
+	session.SetMode(mgo.Monotonic, true)
+	defer session.Close()
 
 	fmt.Printf("Server started on Port %s.\n", PORT)
 
-	c := cron.New()
-	c.AddFunc("0 * * * * *", func() { SaveRecentSongs() })
-	c.Start()
+	cronJob := cron.New()
+	cronJob.AddFunc("0 * * * * *", func() { SaveRecentSongs() })
+	cronJob.Start()
 
 	http.HandleFunc("/", mainPage)
 	http.ListenAndServe(LISTEN_PORT, nil)
@@ -106,7 +108,10 @@ func SaveRecentSongs() {
 	if err != nil {
 		fmt.Println("WARN: ", err)
 	} else {
-		c := session.DB("displosu").C(USER_ID)
+		sessionCopy := session.Copy()
+		defer sessionCopy.Close()
+
+		c := sessionCopy.DB("displosu").C(USER_ID)
 
 		// Grabs the latest song for tracking which songs to record.
 		emptyDatabase := false
@@ -115,7 +120,6 @@ func SaveRecentSongs() {
 		if err != nil {
 			fmt.Println("WARN: no songs found in database!")
 			fmt.Println(err)
-			fmt.Println("USER_ID: ", USER_ID)
 			emptyDatabase = true
 		}
 
