@@ -5,6 +5,7 @@ import (
 	"github.com/Imvoo/GOsu"
 	"github.com/robfig/cron"
 	"gopkg.in/mgo.v2"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -26,7 +27,13 @@ var (
 )
 
 func mainPage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello there, you are currently at %s.", r.URL.Path[1:])
+	songs := RetrieveSongs()
+
+	t := template.New("song")
+	t, _ = template.ParseFiles("template.html")
+	t.Execute(w, songs)
+
+	// fmt.Fprintf(w, "%s", songs)
 }
 
 func extractText(text string) string {
@@ -100,7 +107,26 @@ func main() {
 	cronJob.Start()
 
 	http.HandleFunc("/", mainPage)
+	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	http.ListenAndServe(LISTEN_PORT, nil)
+}
+
+func RetrieveSongs() []GOsu.Song {
+	sessionCopy := session.Copy()
+	defer sessionCopy.Close()
+
+	c := sessionCopy.DB("displosu").C(USER_ID)
+
+	songs := []GOsu.Song{}
+
+	err := c.Find(nil).Sort("-date").Limit(50).All(&songs)
+
+	if err != nil {
+		fmt.Println("WARN: Couldn't retrieve songs from the database.")
+		return songs
+	}
+
+	return songs
 }
 
 func SaveRecentSongs() {
