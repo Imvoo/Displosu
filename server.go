@@ -13,19 +13,14 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 )
 
 var (
-	PORT           string = os.Getenv("PORT")
-	LISTEN_PORT    string
-	DATABASE       GOsu.Database
-	USER_ID        string
-	session        *mgo.Session
-	collectionName string = "Imvoo"
-	dbUser         string
-	dbPass         string
+	LISTEN_PORT string
+	DATABASE    GOsu.Database
+	USER_ID     string
+	session     *mgo.Session
 )
 
 type Config struct {
@@ -43,14 +38,6 @@ func mainPage(w http.ResponseWriter, r *http.Request) {
 	t := template.New("song")
 	t, _ = template.ParseFiles("template.html")
 	t.Execute(w, songs)
-
-	// fmt.Fprintf(w, "%s", songs)
-}
-
-func extractText(text string) string {
-	text = strings.TrimSpace(text)
-	text = strings.Trim(text, "\r\n")
-	return text
 }
 
 func main() {
