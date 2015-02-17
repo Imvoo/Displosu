@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Imvoo/GOsu"
 	"github.com/robfig/cron"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -25,6 +27,15 @@ var (
 	dbUser         string
 	dbPass         string
 )
+
+type Config struct {
+	ApiKey     string
+	DBURL      string
+	DBUsername string
+	DBPassword string
+	Port       int
+	SaveSongs  bool
+}
 
 func mainPage(w http.ResponseWriter, r *http.Request) {
 	songs := RetrieveSongs()
@@ -43,68 +54,42 @@ func extractText(text string) string {
 }
 
 func main() {
-	// For use with local server and not Heroku.
-	if PORT == "" {
-		PORT = "8080"
-	}
-	LISTEN_PORT = ":" + PORT
-
-	DATABASE.SetAPIKey()
-	USER_ID = "Imvoo"
-
-	// Setup the database for incoming connections.
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Start to load in the Username and Password from one of two locations;
-	// From the environment variables dbUser and dbPass or in the current folder
-	// under dbUser.txt and dbPass.txt.
-	tempUserName, err := ioutil.ReadFile(dir + "/dbUser.txt")
+	confFile, err := ioutil.ReadFile(dir + "/conf.json")
 	if err != nil {
-		dbUser = os.Getenv("dbUser")
-
-		if len(dbUser) == 0 {
-			log.Fatal("Unable to find a username for the MongoDB database in local file (dbUser.txt) or in the environment variables under dbUser.")
-		} else {
-			err = nil
-		}
-	} else {
-		dbUser = string(tempUserName)
+		log.Fatal("Could not find configuration file (conf.json).")
 	}
 
-	tempPassword, err := ioutil.ReadFile(dir + "/dbPass.txt")
-	if err != nil {
-		dbPass = os.Getenv("dbPass")
+	var Configuration Config
+	err = json.Unmarshal(confFile, &Configuration)
 
-		if len(dbPass) == 0 {
-			log.Fatal("Unable to find a password for the MongoDB database in local file (dbPass.txt) or in the environment variables under dbPass.")
-		} else {
-			err = nil
-		}
-	} else {
-		dbPass = string(tempPassword)
-	}
+	LISTEN_PORT = ":" + strconv.Itoa(Configuration.Port)
+	DATABASE.SetAPIKey(Configuration.ApiKey)
+	USER_ID = "Imvoo"
 
-	// Removes EOL, spaces etc. that may disturb the Mongo URL.
-	dbUser = extractText(dbUser)
-	dbPass = extractText(dbPass)
-
-	mongoDB := "mongodb://" + string(dbUser) + ":" + string(dbPass) + "@ds053439.mongolab.com:53439/displosu"
+	mongoDB := "mongodb://" + Configuration.DBUsername + ":" + Configuration.DBPassword + "@" + Configuration.DBURL
 
 	session, err = mgo.Dial(mongoDB)
 	if err != nil {
-		log.Fatal("Cannot authenticate with the database, are your credentials correct in the local files or env variables (dbUser, dbPass)?")
+		log.Fatal("Cannot authenticate with the database, are your credentials correct in the conf.json file?")
 	}
 	session.SetMode(mgo.Monotonic, true)
 	defer session.Close()
 
-	fmt.Printf("Server started on Port %s.\n", PORT)
+	fmt.Printf("INFO: Started on Port %s.\n", strconv.Itoa(Configuration.Port))
 
-	cronJob := cron.New()
-	cronJob.AddFunc("0 * * * * *", func() { SaveRecentSongs() })
-	cronJob.Start()
+	if Configuration.SaveSongs {
+		cronJob := cron.New()
+		cronJob.AddFunc("0 * * * * *", func() { SaveRecentSongs() })
+		cronJob.Start()
+		fmt.Println("INFO: Recording new songs.")
+	} else {
+		fmt.Println("INFO: NOT recording new songs.")
+	}
 
 	http.HandleFunc("/", mainPage)
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
