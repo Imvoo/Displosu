@@ -1,5 +1,4 @@
 *.exe
-APIKEY.txt
 *vagrant*
-db*
 test*
+conf.json
