@@ -32,11 +32,18 @@ type Config struct {
 	SaveSongs  bool
 }
 
+var funcMap = template.FuncMap{
+	"multiply": multiply,
+}
+
+func multiply(num1, num2 int) int {
+	return num1 * num2
+}
+
 func mainPage(w http.ResponseWriter, r *http.Request) {
 	songs := RetrieveSongs()
 
-	t := template.New("song")
-	t, _ = template.ParseFiles("template.html")
+	t := template.Must(template.New("t.html").Funcs(funcMap).ParseFiles("t.html"))
 	t.Execute(w, songs)
 }
 
@@ -128,6 +135,7 @@ func SaveRecentSongs() {
 		for _, result := range recentSongs {
 			if !emptyDatabase {
 				resultTime, err := time.Parse("2006-01-02 15:04:05", result.Date)
+
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -137,7 +145,7 @@ func SaveRecentSongs() {
 					err = c.Insert(result)
 
 					if err != nil {
-						log.Fatal(err)
+						fmt.Printf("ERR: Could not insert song into database. Error displayed below.\n%s\n.", err)
 					}
 				}
 			} else {
@@ -145,7 +153,7 @@ func SaveRecentSongs() {
 				err = c.Insert(result)
 
 				if err != nil {
-					log.Fatal(err)
+					fmt.Printf("ERR: Could not insert song into database. Error displayed below.\n%s\n.", err)
 				}
 			}
 		}
