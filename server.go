@@ -65,11 +65,13 @@ func main() {
 	DATABASE.SetAPIKey(Configuration.ApiKey)
 	USER_ID = "Imvoo"
 
+	var mongoDB string
+
 	if len(Configuration.DBUsername) < 1 || len(Configuration.DBPassword) < 1 {
-		mongoDB := "mongodb://" + Configuration.DBURL
+		mongoDB = "mongodb://" + Configuration.DBURL
 
 	} else {
-		mongoDB := "mongodb://" + Configuration.DBUsername + ":" + Configuration.DBPassword + "@" + Configuration.DBURL
+		mongoDB = "mongodb://" + Configuration.DBUsername + ":" + Configuration.DBPassword + "@" + Configuration.DBURL
 	}
 
 	session, err = mgo.Dial(mongoDB)
