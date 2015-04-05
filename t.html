@@ -28,29 +28,25 @@
 				</div>
 				<div style="clear: left;"></div>
 				<br>
-				<table>
-				    <thead>
-				        <tr>
-				            <th>SONG NAME</th>
-				            <th>SONG DIFFICULTY</th>
-				            <th>SCORE</th>
-				            <th>RANK</th>
-				            <th>MODS</th>
-				            <th>DATE</th>
-				        </tr>
-				    </thead>
-
-				    {{range $index, $element := .}}
-				    	<tr class="row zoomIn" style="-webkit-animation-delay:{{multiply $index 100}}ms;">
-				    	    <td>{{.Beatmap_ID}}</td>
-				    	    <td>Insane</td>
-				    	    <td>{{.Score}}</td>
-				    	    <td>{{.Rank}}</td>
-				    	    <td>{{.Enabled_Mods}}</td>
-				    	    <td>{{.Date}}</td>
-				    	</tr>
-				    {{end}}
-				</table>
+				{{ if eq ResetDiv 600 }}{{ end }}
+			    {{range $index, $element := .}}
+			    	{{ if eq .Rank "F" }}
+			    		{{ if le SongDiv 0 }}<div class="holder">{{ end }}
+			    		<div class="song failed">
+			    			<!-- <p>{{ CalculatePercentage . }}</p> -->
+			    			<p>{{ .Score }}</p>
+			    		</div>
+			    		{{ if or (eq RetryDiv 80) (ge SongDiv 3) }}
+			    		{{ if eq ResetDiv 60 }}{{ end }}</div>{{ end }}
+		    		{{ else }}
+			    		{{ if and (ne SongDiv 0) (le SongDiv 10) }}</div>{{ end }}
+			    		{{ if eq ResetDiv 60 }}{{ end }}
+		    			<div class="song cleared">
+		    				<!-- <p>{{ CalculatePercentage . }}</p> -->
+		    				<p>{{ .Score }}</p>
+			    		</div>
+		    		{{ end }}
+			    {{end}}
 			</div>
 		</div>
 		<div id="push"></div>

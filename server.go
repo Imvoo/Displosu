@@ -6,6 +6,7 @@ import (
 	"github.com/Imvoo/GOsu"
 	"github.com/robfig/cron"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -33,14 +34,34 @@ type Config struct {
 }
 
 var funcMap = template.FuncMap{
-	"multiply": multiply,
+	"SongDiv":             SongDiv,
+	"ResetDiv":            ResetDiv,
+	"RetryDiv":            RetryDiv,
+	"CalculatePercentage": CalculatePercentage,
 }
 
-func multiply(num1, num2 int) int {
-	return num1 * num2
+var tracker int = -1
+
+func CalculatePercentage(song GOsu.Song) string {
+	return song.Rank
 }
 
-func mainPage(w http.ResponseWriter, r *http.Request) {
+func RetryDiv() int {
+	tracker = tracker - 1
+	return tracker
+}
+
+func SongDiv() int {
+	tracker = tracker + 1
+	return tracker
+}
+
+func ResetDiv() int {
+	tracker = -1
+	return tracker
+}
+
+func MainPage(w http.ResponseWriter, r *http.Request) {
 	songs := RetrieveSongs()
 
 	t := template.Must(template.New("t.html").Funcs(funcMap).ParseFiles("t.html"))
@@ -92,7 +113,7 @@ func main() {
 		fmt.Println("INFO: NOT recording new songs.")
 	}
 
-	http.HandleFunc("/", mainPage)
+	http.HandleFunc("/", MainPage)
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
 	http.ListenAndServe(LISTEN_PORT, nil)
 }
@@ -105,7 +126,8 @@ func RetrieveSongs() []GOsu.Song {
 
 	songs := []GOsu.Song{}
 
-	err := c.Find(nil).Sort("-date").Limit(50).All(&songs)
+	// err := c.Find(bson.M{"rank": bson.M{"$ne": "F"}}).Sort("-date").Limit(50).All(&songs)
+	err := c.Find(bson.M{}).Sort("-date").Limit(500).All(&songs)
 
 	if err != nil {
 		fmt.Println("WARN: Couldn't retrieve songs from the database.")

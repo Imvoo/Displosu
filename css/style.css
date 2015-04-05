@@ -221,3 +221,54 @@ h1, h2 {
 	font-weight: 700;
 	font-size: 20;
 }
+
+.song {
+	display: inline-block;
+	padding: 10px;
+	border: 1px solid black;
+	height: 80px;
+	width: 80px;
+	margin: 10px 20px;
+	vertical-align: top;
+}
+
+.failed {
+	display: inline-block;
+	padding: 0;
+	margin: 1px;
+	width: 40px;
+	height: 40px;
+	float: left;
+	transition: 0.1s opacity;
+}
+
+.failed:nth-child(odd) {
+	clear: left;
+}
+
+.holder {
+	overflow: hidden;
+	display: inline-block;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	margin-right: -4px;
+}
+
+.song p {
+	font-family: Roboto;
+	text-align: left;
+	font-size: 12px;
+}
+
+.failed p {
+	font-size: 9px;
+}
+
+.failed:hover, .failed:active {
+	opacity: 1;
+	transition: 0.1s opacity;
+}
+
+.cleared + .cleared {
+	margin-left: 0px;
+}
